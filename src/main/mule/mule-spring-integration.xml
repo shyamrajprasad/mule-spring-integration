@@ -1,0 +1,38 @@
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:java="http://www.mulesoft.org/schema/mule/java"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:spring="http://www.mulesoft.org/schema/mule/spring" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/spring http://www.mulesoft.org/schema/mule/spring/current/mule-spring.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+  <spring:config name="Spring_Config" doc:name="Spring Config" doc:id="7e93dccb-599b-4c02-8dbc-aa2122311c59" files="beans.xml" />
+  <configuration-properties doc:name="Configuration properties" doc:id="b060bb34-d369-49bc-9ffe-23c65b8c3716" file="application.properties" />
+  <db:config name="Database_Config" doc:name="Database Config" doc:id="a798f75b-702d-464c-b4e9-5addba8f8f5f" >
+    <db:data-source-connection dataSourceRef="dataSource" />
+  </db:config>
+  <http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="1d347edb-5dfc-423a-96fa-1e86b42e4936" >
+    <http:listener-connection host="0.0.0.0" port="8081" />
+  </http:listener-config>
+  <flow name="mule-spring-integrationFlow" doc:id="3ed977d5-765c-4e16-9990-6287ab04ccce" >
+    <http:listener doc:name="Listener" doc:id="5478b667-6b6d-47ac-82f2-ff70347240b7" config-ref="HTTP_Listener_config" path="/spring"/>
+    <java:invoke method="sayHello()" doc:name="Invoke" doc:id="07bf2ed3-5617-4e2d-a62e-07ca857798ef" class="com.shyam.service.UserService" instance="userService"/>
+    <logger level="INFO" doc:name="Logger" doc:id="f908c8da-f93f-466b-9210-83337817c372" message="#[payload]"/>
+  </flow>
+  <flow name="mule-spring-db-integration" doc:id="56fba491-70d5-420a-b29a-1d32be8a080e" >
+    <http:listener doc:name="Listener" doc:id="b33b99c4-e886-4d40-ad52-24f1fdd493b9" config-ref="HTTP_Listener_config" path="/accounts"/>
+    <db:select doc:name="Select" doc:id="0dbe0931-8eb4-4da3-a982-fd8e7811a2ef" config-ref="Database_Config">
+      <db:sql ><![CDATA[select * from accounts;]]></db:sql>
+    </db:select>
+    <ee:transform doc:name="Transform Message" doc:id="d8ce6257-93d2-4907-8988-c872f8418ac3" >
+      <ee:message >
+        <ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+      </ee:message>
+    </ee:transform>
+  </flow>
+
+</mule>
